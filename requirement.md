@@ -6,6 +6,11 @@ A web application that helps users discover recipes based on ingredients they al
 
 All recipes must be exclusively Korean cuisine — only Korean recipes are included in the app.
 
+> **Status:** All MVP features are implemented. The AI scraping agent is built but has not
+> yet been run to populate data (the catalog uses 15 hand-authored seed recipes). Future
+> items — ingredient substitution and recipe export/import — are not started. See the
+> [Scope Summary](#scope-summary) for the per-feature breakdown.
+
 ---
 
 ## UI
@@ -16,16 +21,16 @@ All recipes must be exclusively Korean cuisine — only Korean recipes are inclu
 
 ### Screens
 
-#### 1. Recipe List
+#### 1. Recipe List ✅ _Done_
 
-- Displays recipes filtered by selected ingredients
-- Supports filtering by dietary restrictions (see MVP below)
-- Shows recipe card with title, thumbnail, and matched ingredients at a glance
+- [x] Displays recipes filtered by selected ingredients
+- [x] Supports filtering by dietary restrictions (see MVP below)
+- [x] Shows recipe card with title, thumbnail, and matched ingredients at a glance
 
-#### 2. Recipe Detail
+#### 2. Recipe Detail ✅ _Done_
 
-- Full recipe view: ingredients, steps, dietary tags
-- Indicates which of the user's available ingredients are used vs. missing
+- [x] Full recipe view: ingredients, steps, dietary tags
+- [x] Indicates which of the user's available ingredients are used vs. missing
 
 ---
 
@@ -33,16 +38,16 @@ All recipes must be exclusively Korean cuisine — only Korean recipes are inclu
 
 ### MVP (Minimum Viable Product)
 
-- Design should be based on the "Claude" template using: https://getdesign.md/claude/design-md
-- **Ingredient-based filtering** — user inputs available ingredients and gets matching recipes
-- **Dietary restriction filters**
-  - Vegan
-  - Vegetarian
-  - _(Additional options TBD: gluten-free, dairy-free, etc.)_
+- [x] Design based on the "Claude" template ([getdesign.md/claude](https://getdesign.md/claude/design-md)) — warm cream canvas, terracotta accent, serif display
+- [x] **Ingredient-based filtering** — user inputs available ingredients and gets matching recipes, ranked by match count
+- [x] **Dietary restriction filters**
+  - [x] Vegan
+  - [x] Vegetarian
+  - [x] Also implemented: gluten-free, dairy-free, pescatarian
 
 ### Future
 
-- **Ingredient substitution suggestions** — show alternative ingredients when the user is missing one or two items
+- [ ] **Ingredient substitution suggestions** — show alternative ingredients when the user is missing one or two items
 
 ---
 
@@ -50,48 +55,48 @@ All recipes must be exclusively Korean cuisine — only Korean recipes are inclu
 
 ### MVP
 
-- **Recipe database (storage)** — stores recipe data including ingredients, steps, tags, and dietary metadata. Recipes must be exclusively Korean.
-- **Backend business logic**
-  - Filter recipes by available ingredients
-  - Filter recipes by dietary restrictions
-- **AI Agent pipeline**
-  - Scrapes recipes from external sources
-  - Parses and structures recipe data
-  - Inputs results into the database
-- **Backend** — implement business logic using Java with Spring Boot (REST API, service layer, repository layer). Filter recipes by available ingredients and dietary restrictions.
+- [x] **Recipe database (storage)** — stores recipe data including ingredients, steps, tags, and dietary metadata. Recipes are exclusively Korean. _(JPA entities + 15 seeded recipes; H2 by default, PostgreSQL via profile.)_
+- [x] **Backend business logic**
+  - [x] Filter recipes by available ingredients
+  - [x] Filter recipes by dietary restrictions
+- [x] **AI Agent pipeline** _(implemented; runs when `ANTHROPIC_API_KEY` is set — not yet run to populate data)_
+  - [x] Scrapes recipes from external sources
+  - [x] Parses and structures recipe data
+  - [x] Inputs results into the database
+- [x] **Backend** — business logic in Java with Spring Boot (REST API, service layer, repository layer). Filters recipes by available ingredients and dietary restrictions.
 
 ### Future
 
-- **Recipe export / import**
-  - Export recipes as text or JSON files
-  - Import recipes from text or JSON files
+- [ ] **Recipe export / import**
+  - [ ] Export recipes as text or JSON files
+  - [ ] Import recipes from text or JSON files
 
 ---
 
-## Tech Considerations _(TBD)_
+## Tech Considerations (Decided and Implemented)
 
-| Layer        | Options / Recommendation                                               |
-| ------------ | ---------------------------------------------------------------------- |
-| Frontend     | Next.js, TypeScript                                                      |
-| Backend      | Java with Spring Boot (REST APIs), Spring Web, Spring Data JPA          |
-| Build Tool   | Maven or Gradle (pick one; provide `pom.xml` or `build.gradle`)         |
-| Database     | PostgreSQL (use with Spring Data JPA; hosted options: Supabase, RDS)    |
-| Container    | Docker for local dev and deployment                                     |
-| CI / CD      | GitHub Actions (build, test, container image)                           |
-| AI Agent     | Anthropic / OpenAI or custom agent; call from backend or separate worker |
+| Layer        | Choice                                                                      |
+| ------------ | --------------------------------------------------------------------------- |
+| Frontend     | Next.js 14 (Pages Router) + TypeScript                                       |
+| Backend      | Java 17 + Spring Boot 3.3 (Spring Web, Spring Data JPA)                      |
+| Build Tool   | Maven (`backend/pom.xml`)                                                    |
+| Database     | H2 in-memory by default; PostgreSQL via the `postgres` profile (Docker)     |
+| Container    | Docker + Docker Compose (per-service Dockerfiles)                            |
+| CI / CD      | GitHub Actions — backend test, frontend build, Docker image builds          |
+| AI Agent     | Anthropic Claude API, called from the backend (`RecipeScraperAgent`)        |
 
 ---
 
 ## Scope Summary
 
-| Feature                                         | Priority |
-| ----------------------------------------------- | -------- |
-| Recipe list screen                              | MVP      |
-| Recipe detail screen                            | MVP      |
-| Ingredient-based filtering                      | MVP      |
-| Dietary restriction filters (vegan, vegetarian) | MVP      |
-| Recipe database + storage                       | MVP      |
-| Backend filtering logic                         | MVP      |
-| AI Agent for recipe scraping                    | MVP      |
-| Ingredient substitution                         | Future   |
-| Recipe export / import (text, JSON)             | Future   |
+| Feature                                         | Priority | Status         |
+| ----------------------------------------------- | -------- | -------------- |
+| Recipe list screen                              | MVP      | ✅ Done         |
+| Recipe detail screen                            | MVP      | ✅ Done         |
+| Ingredient-based filtering                      | MVP      | ✅ Done         |
+| Dietary restriction filters (vegan, vegetarian) | MVP      | ✅ Done         |
+| Recipe database + storage                       | MVP      | ✅ Done         |
+| Backend filtering logic                         | MVP      | ✅ Done         |
+| AI Agent for recipe scraping                    | MVP      | ✅ Built (unrun) |
+| Ingredient substitution                         | Future   | ⬜ Not started  |
+| Recipe export / import (text, JSON)             | Future   | ⬜ Not started  |

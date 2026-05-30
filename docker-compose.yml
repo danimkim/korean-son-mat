@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: korean-son-mat-postgres
+    environment:
+      POSTGRES_DB: korean_recipes
+      POSTGRES_USER: korean
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U korean -d korean_recipes"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: korean-son-mat-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/korean_recipes
+      SPRING_DATASOURCE_USERNAME: korean
+      SPRING_DATASOURCE_PASSWORD: password
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:3000
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    container_name: korean-son-mat-frontend
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080/api
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

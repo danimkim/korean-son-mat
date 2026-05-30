@@ -1,8 +1,13 @@
 # korean-son-mat — Korean Recipe Discovery App
 
-A web application that helps users discover recipes based on ingredients they already have, with dietary restriction filtering. All recipes are exclusively Korean cuisine.
+**손맛 (son-mat)** — “the taste of one’s hands.”
 
-**Live Reference:** [Supercook](https://www.supercook.com/#/desktop)
+A full-stack web app that helps you discover **Korean** recipes from the ingredients
+you already have, with dietary-restriction filtering. Inspired by
+[Supercook](https://www.supercook.com/#/desktop). All recipes are exclusively Korean cuisine.
+
+Add the ingredients in your fridge and pantry, and the app surfaces the dishes you can
+make right now — ranked by how much you already have.
 
 ---
 
@@ -10,63 +15,73 @@ A web application that helps users discover recipes based on ingredients they al
 
 ### Tech Stack
 
-| Layer      | Technology                             |
-| ---------- | -------------------------------------- |
-| Frontend   | Next.js + TypeScript                   |
-| Backend    | Java with Spring Boot (REST APIs)      |
-| Database   | PostgreSQL                             |
-| Build Tool | Maven                                  |
-| Container  | Docker                                 |
-| CI / CD    | GitHub Actions                         |
-| AI Agent   | Anthropic Claude API (recipe scraping) |
+| Layer      | Technology                                                        |
+| ---------- | ----------------------------------------------------------------- |
+| Frontend   | Next.js 14 (Pages Router) + TypeScript, plain-CSS design tokens   |
+| Backend    | Java 17 + Spring Boot 3.3 (Spring Web, Spring Data JPA)           |
+| Database   | H2 in-memory by default · PostgreSQL via the `postgres` profile   |
+| Build Tool | Maven (backend) · npm (frontend)                                  |
+| Container  | Docker + Docker Compose                                           |
+| CI / CD    | GitHub Actions                                                    |
+| AI Agent   | Anthropic Claude API (optional recipe scraping)                   |
 
 ### Project Structure
 
 ```
 korean-son-mat/
-├── frontend/                 # Next.js + TypeScript app
-│   ├── pages/               # Next.js pages (recipe list, detail)
-│   ├── components/          # React components
-│   ├── styles/              # TailwindCSS or styled-components
-│   ├── lib/                 # API client utilities
-│   ├── package.json
-│   └── tsconfig.json
-├── backend/                 # Spring Boot application
-│   ├── src/main/java/
-│   │   └── com/koreansonmat/
-│   │       ├── controller/  # REST controllers
-│   │       ├── service/     # Business logic
-│   │       ├── repository/  # Data access layer
-│   │       ├── model/       # Entity classes
-│   │       ├── agent/       # AI agent for recipe scraping
-│   │       └── App.java     # Main application class
+├── frontend/                      # Next.js + TypeScript app
+│   ├── pages/                     # _app, index (list), recipes/[id] (detail)
+│   ├── components/                # Layout, RecipeCard
+│   ├── lib/                       # api client, types, thumbnail helper
+│   ├── styles/globals.css         # Claude-inspired design tokens (plain CSS)
+│   ├── Dockerfile
+│   └── package.json
+├── backend/                       # Spring Boot application
+│   ├── src/main/java/com/koreansonmat/
+│   │   ├── controller/            # RecipeController (REST)
+│   │   ├── service/               # RecipeService (filtering logic)
+│   │   ├── repository/            # RecipeRepository (Spring Data JPA)
+│   │   ├── model/                 # Recipe, Ingredient, DietaryTag
+│   │   ├── dto/                   # API response records
+│   │   ├── agent/                 # RecipeScraperAgent (AI pipeline)
+│   │   ├── config/                # WebConfig (CORS), DataSeeder
+│   │   └── App.java               # Main application class
 │   ├── src/main/resources/
-│   │   └── application.properties
+│   │   ├── application.properties           # default profile (H2)
+│   │   └── application-postgres.properties  # postgres profile
+│   ├── src/test/java/             # service + controller tests
+│   ├── Dockerfile
 │   └── pom.xml
-├── docker-compose.yml       # Local dev environment
-├── .github/workflows/       # CI/CD pipelines
+├── docker-compose.yml             # postgres + backend + frontend
+├── .github/workflows/ci.yml       # CI: backend, frontend, docker
 ├── requirement.md
 └── README.md
 ```
 
 ---
 
-## Features (MVP)
+## Features
 
 ### Frontend
 
-- **Recipe List Screen** — displays recipes filtered by selected ingredients
-- **Recipe Detail Screen** — full recipe view with ingredients, steps, and dietary tags
-- **Ingredient Filtering** — users input available ingredients
-- **Dietary Filters** — vegan, vegetarian options
-- **Design** — based on Claude design system ([getdesign.md/claude](https://getdesign.md/claude/design-md))
+- **Recipe List** — ingredient picker with suggestion chips, dietary toggles, and live
+  "match" bars showing how much of each recipe you already have.
+- **Recipe Detail** — full ingredients (marked available vs. missing), numbered steps,
+  dietary tags, cook time, and servings.
+- **Ingredient filtering** — your pantry persists in `localStorage` across navigation.
+- **Dietary filters** — vegan, vegetarian, gluten-free, dairy-free, pescatarian.
+- **Design** — warm, editorial aesthetic inspired by the Claude design system
+  ([getdesign.md/claude](https://getdesign.md/claude/design-md)).
 
 ### Backend
 
-- **Recipe Filtering API** — filter by ingredients and dietary restrictions
-- **Recipe Database** — stores Korean recipes with metadata
-- **AI Agent Pipeline** — scrapes, parses, and structures recipe data from external sources
-- **REST Endpoints** — CRUD operations for recipes and search
+- **Search API** — filter by available ingredients (ranked by match count, Supercook-style)
+  and/or dietary restrictions.
+- **Recipe catalog** — seeded with **15 curated Korean recipes** on first start
+  (see [Recipe data & provenance](#recipe-data--provenance)).
+- **AI agent pipeline** — `RecipeScraperAgent` fetches a recipe page, has Claude structure
+  it into JSON, and persists it. **Disabled unless `ANTHROPIC_API_KEY` is set.**
+- **REST endpoints** — list, search, ingredient catalog, detail, create, delete.
 
 ---
 
@@ -74,132 +89,110 @@ korean-son-mat/
 
 ### Prerequisites
 
-- **Docker & Docker Compose** (for local dev environment)
-- **Node.js 18+** (for frontend development)
-- **Java 17+** & **Maven** (for backend development)
-- **PostgreSQL** (optional, included in docker-compose)
+- **Docker & Docker Compose** — for the one-command setup, **or**
+- **Node.js 18+** (frontend) and **Java 17+ with Maven** (backend) — for local dev.
+
+PostgreSQL is **not** required locally — the backend defaults to an embedded H2 database.
 
 ### Quick Start with Docker
 
-1. **Clone the repository**
+```bash
+git clone https://github.com/danimkim/korean-son-mat.git
+cd korean-son-mat
+docker compose up --build
+```
 
-   ```bash
-   git clone https://github.com/your-org/korean-son-mat.git
-   cd korean-son-mat
-   ```
+This starts three services and **auto-seeds** the recipe catalog (no manual init step):
 
-2. **Start services**
+- PostgreSQL on `localhost:5432` (db `korean_recipes`, user `korean`, password `password`)
+- Backend API on `http://localhost:8080`
+- Frontend on `http://localhost:3000`
 
-   ```bash
-   docker-compose up -d
-   ```
+Open **http://localhost:3000**.
 
-   This starts:
-   - PostgreSQL database on `localhost:5432`
-   - Backend Spring Boot API on `http://localhost:8080`
-   - Frontend Next.js app on `http://localhost:3000`
-
-3. **Initialize database**
-
-   ```bash
-   # Run migrations and seed initial data
-   docker exec korean-son-mat-backend java -jar app.jar --schema.init=true
-   ```
-
-4. **Access the app**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8080/api
-   - Database: `localhost:5432` (user: `korean`, password: `password`)
+To enable the AI scraping agent, copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY`
+before running Compose.
 
 ---
 
-## Development Setup (Local)
+## Development Setup (Local, no Docker)
 
-### Backend Setup
-
-1. **Install dependencies**
-
-   ```bash
-   cd backend
-   mvn clean install
-   ```
-
-2. **Configure database** — edit `src/main/resources/application.properties`
-
-   ```properties
-   spring.datasource.url=jdbc:postgresql://localhost:5432/korean_recipes
-   spring.datasource.username=korean
-   spring.datasource.password=password
-   spring.jpa.hibernate.ddl-auto=update
-   ```
-
-3. **Run Spring Boot**
-   ```bash
-   mvn spring-boot:run
-   ```
-   Backend runs on `http://localhost:8080`
-
-### Frontend Setup
-
-1. **Install dependencies**
-
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-2. **Configure API endpoint** — create `.env.local`
-
-   ```env
-   NEXT_PUBLIC_API_URL=http://localhost:8080/api
-   ```
-
-3. **Start dev server**
-   ```bash
-   npm run dev
-   ```
-   Frontend runs on `http://localhost:3000`
-
----
-
-## API Endpoints (Backend)
-
-### Recipe Endpoints
-
-| Method | Endpoint              | Description                          |
-| ------ | --------------------- | ------------------------------------ |
-| GET    | `/api/recipes`        | List all recipes (with filters)      |
-| GET    | `/api/recipes/{id}`   | Get recipe details                   |
-| GET    | `/api/recipes/search` | Search by ingredients & dietary tags |
-| POST   | `/api/recipes`        | Create recipe (admin)                |
-| PUT    | `/api/recipes/{id}`   | Update recipe (admin)                |
-| DELETE | `/api/recipes/{id}`   | Delete recipe (admin)                |
-
-### Filter Query Parameters
+### Backend
 
 ```bash
-# By ingredients (comma-separated)
+cd backend
+mvn spring-boot:run
+```
+
+Runs on `http://localhost:8080` using an in-memory H2 database that is **auto-seeded** on
+startup — no database setup needed. The H2 console is available at
+`http://localhost:8080/h2-console` (JDBC URL `jdbc:h2:mem:korean_recipes`, user `sa`).
+
+To run against PostgreSQL instead:
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=postgres
+# honors SPRING_DATASOURCE_URL / _USERNAME / _PASSWORD (see application-postgres.properties)
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+cp .env.local.example .env.local   # NEXT_PUBLIC_API_URL=http://localhost:8080/api
+npm run dev
+```
+
+Runs on `http://localhost:3000`.
+
+---
+
+## API Endpoints
+
+Base path: `/api/recipes`
+
+| Method | Endpoint                     | Description                                  |
+| ------ | ---------------------------- | -------------------------------------------- |
+| GET    | `/api/recipes`               | List all recipes (accepts the same filters)  |
+| GET    | `/api/recipes/search`        | Search by ingredients and/or dietary tags    |
+| GET    | `/api/recipes/ingredients`   | Distinct ingredient names (for the picker)   |
+| GET    | `/api/recipes/{id}`          | Recipe detail (optionally `?ingredients=…`)  |
+| POST   | `/api/recipes`               | Create a recipe                              |
+| DELETE | `/api/recipes/{id}`          | Delete a recipe                              |
+
+### Filter query parameters
+
+Both parameters are optional, comma-separated lists. Dietary values are case-insensitive
+and accept hyphens (`gluten-free` → `GLUTEN_FREE`).
+
+```bash
+# By ingredients — results ranked by how many you have
 GET /api/recipes/search?ingredients=garlic,soy-sauce,sesame-oil
 
-# By dietary restrictions
-GET /api/recipes/search?dietary=vegan,vegetarian
+# By dietary restrictions (result must satisfy ALL listed tags)
+GET /api/recipes/search?dietary=vegan
 
 # Combined
-GET /api/recipes/search?ingredients=rice,beef&dietary=vegetarian
+GET /api/recipes/search?ingredients=spinach,garlic&dietary=vegan
 ```
+
+Valid dietary tags: `VEGAN`, `VEGETARIAN`, `GLUTEN_FREE`, `DAIRY_FREE`, `PESCATARIAN`.
 
 ---
 
 ## Environment Variables
 
-### Backend (`backend/src/main/resources/application.properties`)
+### Backend
 
-```properties
-SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/korean_recipes
-SPRING_DATASOURCE_USERNAME=korean
-SPRING_DATASOURCE_PASSWORD=password
-ANTHROPIC_API_KEY=your-key-here
-```
+| Variable                     | Default                  | Notes                                   |
+| ---------------------------- | ------------------------ | --------------------------------------- |
+| `ANTHROPIC_API_KEY`          | _(unset)_                | Enables the recipe scraping agent       |
+| `SPRING_PROFILES_ACTIVE`     | _(default = H2)_         | Set to `postgres` for PostgreSQL        |
+| `SPRING_DATASOURCE_URL`      | `jdbc:postgresql://…`    | Used by the `postgres` profile          |
+| `SPRING_DATASOURCE_USERNAME` | `korean`                 | Used by the `postgres` profile          |
+| `SPRING_DATASOURCE_PASSWORD` | `password`               | Used by the `postgres` profile          |
+| `APP_CORS_ALLOWED_ORIGINS`   | `http://localhost:3000`  | Allowed browser origin(s)               |
 
 ### Frontend (`.env.local`)
 
@@ -211,91 +204,95 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 
 ## Running Tests
 
-### Backend Tests
+### Backend (10 tests: service + controller)
 
 ```bash
 cd backend
 mvn test
 ```
 
-### Frontend Tests
+### Frontend
 
 ```bash
 cd frontend
-npm test
+npm run build   # type-checks and builds
+npm test        # placeholder — no unit tests configured yet
 ```
+
+---
+
+## Recipe data & provenance
+
+The catalog is seeded by `backend/.../config/DataSeeder.java` with **15 hand-authored
+Korean recipes** (Bibimbap, Japchae, Kimchi Jjigae, Bulgogi, Tteokbokki, and more). These
+were written from general Korean-cuisine knowledge — **not scraped** and not verified
+against an authoritative source; dietary tags are best-effort.
+
+For sourced, attributed recipes, the `RecipeScraperAgent` is the intended path: with
+`ANTHROPIC_API_KEY` set, it fetches a page, has Claude structure it into the recipe schema,
+validates it as Korean, and persists it. It is inert without a key.
 
 ---
 
 ## Deployment
 
-### Build Docker Image
+### Build images
 
 ```bash
-docker build -t korean-son-mat:latest .
+docker build -t korean-son-mat-backend  ./backend
+docker build -t korean-son-mat-frontend ./frontend
 ```
 
-### Deploy to Container Registry
-
-```bash
-docker tag korean-son-mat:latest your-registry/korean-son-mat:latest
-docker push your-registry/korean-son-mat:latest
-```
+Each service has its own multi-stage `Dockerfile`. The backend image runs with the
+`postgres` profile by default.
 
 ### CI/CD (GitHub Actions)
 
-- Workflows configured in `.github/workflows/`
-- Automatic build, test, and deploy on push to `main`
+`.github/workflows/ci.yml` runs on push / PR to `main`:
+
+- **backend** — `mvn clean verify` on JDK 17
+- **frontend** — `npm install` + `npm run build` (type-check) on Node 20
+- **docker** — builds both images after the above pass
 
 ---
 
 ## Troubleshooting
 
-### Port Already in Use
+**Port already in use**
 
 ```bash
-# Find process on port 3000
-lsof -i :3000
-kill -9 <PID>
-
-# Or use different port
-NEXT_PUBLIC_API_URL=http://localhost:8080/api PORT=3001 npm run dev
+lsof -ti:8080,3000 | xargs kill        # free both ports
+# or run the frontend elsewhere:
+PORT=3001 npm run dev
 ```
 
-### Database Connection Error
+**Frontend can't reach the API** — confirm the backend is up on `http://localhost:8080`
+and that `NEXT_PUBLIC_API_URL` matches. CORS allows `http://localhost:3000` by default
+(override with `APP_CORS_ALLOWED_ORIGINS`).
+
+**Docker database/connection issues**
 
 ```bash
-# Verify PostgreSQL is running
-docker-compose ps
-
-# Check logs
-docker-compose logs postgres
-```
-
-### Backend API Not Responding
-
-```bash
-# Check logs
-docker-compose logs backend
-
-# Rebuild
-docker-compose down
-docker-compose build --no-cache
-docker-compose up -d
+docker compose ps
+docker compose logs postgres
+docker compose logs backend
+docker compose down && docker compose up --build
 ```
 
 ---
 
-## Next Steps
+## Roadmap
 
-- [ ] Set up frontend Next.js project
-- [ ] Set up backend Spring Boot project
-- [ ] Configure PostgreSQL database
-- [ ] Implement recipe filtering API
-- [ ] Build recipe list and detail UI
-- [ ] Integrate AI agent for recipe scraping
-- [ ] Write tests
-- [ ] Set up GitHub Actions CI/CD
+Delivered (MVP): recipe list & detail screens, ingredient + dietary filtering, recipe
+database with seed data, backend filtering logic, AI scraping agent, Docker, and CI.
+
+Next:
+
+- [ ] Run the scraping agent to replace seed data with sourced, attributed recipes
+- [ ] `PUT /api/recipes/{id}` for admin edits
+- [ ] Ingredient substitution suggestions (Future in `requirement.md`)
+- [ ] Recipe export / import as text or JSON (Future in `requirement.md`)
+- [ ] Frontend unit / component tests
 
 ---
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Layout from "../components/Layout";
 import RecipeCard from "../components/RecipeCard";
 import { getAllIngredients, searchRecipes } from "../lib/api";
@@ -33,39 +33,49 @@ export default function Home() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Gate persistence until after the initial restore, so the empty first-render
+  // state can't clobber previously saved values (restore-vs-persist race).
+  const [loaded, setLoaded] = useState(false);
 
   const pantryLower = useMemo(
     () => new Set(pantry.map((p) => p.toLowerCase())),
     [pantry]
   );
 
-  // Restore the pantry on first load so it persists across navigation/refresh.
+  // Restore the pantry and dietary selection on first load so they persist
+  // across navigation/refresh. Marking `loaded` last unblocks the persist
+  // effects below only after restoration has happened.
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("son-mat:pantry");
-      if (saved) setPantry(JSON.parse(saved));
+      const savedPantry = localStorage.getItem("son-mat:pantry");
+      if (savedPantry) setPantry(JSON.parse(savedPantry));
+      const savedDietary = localStorage.getItem("son-mat:dietary");
+      if (savedDietary) setDietary(JSON.parse(savedDietary));
     } catch {
       /* ignore malformed storage */
     }
+    setLoaded(true);
   }, []);
 
   useEffect(() => {
+    if (!loaded) return;
     try {
       localStorage.setItem("son-mat:pantry", JSON.stringify(pantry));
     } catch {
       /* ignore */
     }
-  }, [pantry]);
+  }, [pantry, loaded]);
 
   // Persist the dietary selection too, so the detail page can highlight the
   // matching "make it vegan/…" substitution.
   useEffect(() => {
+    if (!loaded) return;
     try {
       localStorage.setItem("son-mat:dietary", JSON.stringify(dietary));
     } catch {
       /* ignore */
     }
-  }, [dietary]);
+  }, [dietary, loaded]);
 
   useEffect(() => {
     getAllIngredients()
@@ -73,18 +83,26 @@ export default function Home() {
       .catch(() => setSuggestions([]));
   }, []);
 
+  // Guards against out-of-order responses: only the most recent search may
+  // update state, so a slow earlier request can't overwrite a newer result.
+  const requestId = useRef(0);
+
   const runSearch = useCallback(async () => {
+    const myRequest = ++requestId.current;
     setLoading(true);
     setError(null);
     try {
-      setRecipes(await searchRecipes(pantry, dietary, { difficulty, maxCookTime }));
+      const data = await searchRecipes(pantry, dietary, { difficulty, maxCookTime });
+      if (myRequest === requestId.current) setRecipes(data);
     } catch (e) {
-      setError(
-        "Couldn't reach the recipe service. Make sure the backend is running on http://localhost:8080."
-      );
-      setRecipes([]);
+      if (myRequest === requestId.current) {
+        setError(
+          "Couldn't reach the recipe service. Make sure the backend is running on http://localhost:8080."
+        );
+        setRecipes([]);
+      }
     } finally {
-      setLoading(false);
+      if (myRequest === requestId.current) setLoading(false);
     }
   }, [pantry, dietary, difficulty, maxCookTime]);
 

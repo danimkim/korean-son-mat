@@ -7,9 +7,9 @@ A web application that helps users discover recipes based on ingredients they al
 All recipes must be exclusively Korean cuisine — only Korean recipes are included in the app.
 
 > **Status:** All MVP features are implemented. The AI scraping agent is built but has not
-> yet been run to populate data (the catalog uses 15 hand-authored seed recipes). Future
-> items — ingredient substitution and recipe export/import — are not started. See the
-> [Scope Summary](#scope-summary) for the per-feature breakdown.
+> yet been run to populate data (the catalog uses 15 hand-authored seed recipes).
+> Ingredient substitution suggestions are implemented; recipe export/import is not
+> started. See the [Scope Summary](#scope-summary) for the per-feature breakdown.
 
 ---
 
@@ -47,7 +47,7 @@ All recipes must be exclusively Korean cuisine — only Korean recipes are inclu
 
 ### Future
 
-- [ ] **Ingredient substitution suggestions** — show alternative ingredients when the user is missing one or two items
+- [x] **Ingredient substitution suggestions** — alternative ingredients shown on the recipe detail (e.g. Beef sirloin → plant-based beef / tofu for vegan/vegetarian), grouped into per-diet "make it vegan/gluten-free" adaptations
 
 ---
 
@@ -98,5 +98,5 @@ All recipes must be exclusively Korean cuisine — only Korean recipes are inclu
 | Recipe database + storage                       | MVP      | ✅ Done         |
 | Backend filtering logic                         | MVP      | ✅ Done         |
 | AI Agent for recipe scraping                    | MVP      | ✅ Built (unrun) |
-| Ingredient substitution                         | Future   | ⬜ Not started  |
+| Ingredient substitution                         | Future   | ✅ Done         |
 | Recipe export / import (text, JSON)             | Future   | ⬜ Not started  |

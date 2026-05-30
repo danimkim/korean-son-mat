@@ -13,10 +13,22 @@ const DIETARY_OPTIONS: DietaryTag[] = [
   "PESCATARIAN",
 ];
 
+const DIFFICULTY_OPTIONS = ["Easy", "Medium", "Hard"];
+
+const COOK_TIME_OPTIONS: { label: string; value: number | null }[] = [
+  { label: "Any", value: null },
+  { label: "≤ 20 min", value: 20 },
+  { label: "≤ 30 min", value: 30 },
+  { label: "≤ 45 min", value: 45 },
+  { label: "≤ 60 min", value: 60 },
+];
+
 export default function Home() {
   const [pantry, setPantry] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
   const [dietary, setDietary] = useState<DietaryTag[]>([]);
+  const [difficulty, setDifficulty] = useState<string[]>([]);
+  const [maxCookTime, setMaxCookTime] = useState<number | null>(null);
   const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +77,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      setRecipes(await searchRecipes(pantry, dietary));
+      setRecipes(await searchRecipes(pantry, dietary, { difficulty, maxCookTime }));
     } catch (e) {
       setError(
         "Couldn't reach the recipe service. Make sure the backend is running on http://localhost:8080."
@@ -74,7 +86,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [pantry, dietary]);
+  }, [pantry, dietary, difficulty, maxCookTime]);
 
   useEffect(() => {
     runSearch();
@@ -98,11 +110,24 @@ export default function Home() {
   const toggleDietary = (tag: DietaryTag) =>
     setDietary((d) => (d.includes(tag) ? d.filter((t) => t !== tag) : [...d, tag]));
 
+  const toggleDifficulty = (level: string) =>
+    setDifficulty((d) =>
+      d.includes(level) ? d.filter((l) => l !== level) : [...d, level]
+    );
+
   const clearAll = () => {
     setPantry([]);
     setDietary([]);
+    setDifficulty([]);
+    setMaxCookTime(null);
     setDraft("");
   };
+
+  const hasActiveFilters =
+    pantry.length > 0 ||
+    dietary.length > 0 ||
+    difficulty.length > 0 ||
+    maxCookTime != null;
 
   const hasFilter = pantry.length > 0;
   const topSuggestions = suggestions.slice(0, 16);
@@ -189,7 +214,39 @@ export default function Home() {
           ))}
         </div>
 
-        {(pantry.length > 0 || dietary.length > 0) && (
+        <hr className="divider" />
+
+        <div className="panel__label">Difficulty</div>
+        <div className="toggles">
+          {DIFFICULTY_OPTIONS.map((level) => (
+            <button
+              key={level}
+              type="button"
+              className={`toggle${difficulty.includes(level) ? " toggle--on" : ""}`}
+              onClick={() => toggleDifficulty(level)}
+            >
+              {level}
+            </button>
+          ))}
+        </div>
+
+        <hr className="divider" />
+
+        <div className="panel__label">Max cook time</div>
+        <div className="toggles">
+          {COOK_TIME_OPTIONS.map((opt) => (
+            <button
+              key={opt.label}
+              type="button"
+              className={`toggle${maxCookTime === opt.value ? " toggle--on" : ""}`}
+              onClick={() => setMaxCookTime(opt.value)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {hasActiveFilters && (
           <>
             <hr className="divider" />
             <button type="button" className="btn btn--ghost" onClick={clearAll}>

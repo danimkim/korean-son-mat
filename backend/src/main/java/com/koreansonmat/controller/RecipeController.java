@@ -39,19 +39,27 @@ public class RecipeController {
     @GetMapping
     public List<RecipeSummary> list(
             @RequestParam(required = false) String ingredients,
-            @RequestParam(required = false) String dietary) {
-        return recipeService.search(parseCsv(ingredients), parseDietary(dietary));
+            @RequestParam(required = false) String dietary,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) Integer maxCookTime) {
+        return recipeService.search(parseCsv(ingredients), parseDietary(dietary),
+                Set.copyOf(parseCsv(difficulty)), maxCookTime);
     }
 
     /**
-     * Supercook-style search by available ingredients and/or dietary restrictions.
-     * Both params are optional, comma-separated lists.
+     * Supercook-style search by available ingredients, dietary restrictions,
+     * difficulty, and/or maximum cook time. All params are optional;
+     * {@code ingredients}, {@code dietary}, and {@code difficulty} are
+     * comma-separated lists, {@code maxCookTime} is minutes.
      */
     @GetMapping("/search")
     public List<RecipeSummary> search(
             @RequestParam(required = false) String ingredients,
-            @RequestParam(required = false) String dietary) {
-        return recipeService.search(parseCsv(ingredients), parseDietary(dietary));
+            @RequestParam(required = false) String dietary,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) Integer maxCookTime) {
+        return recipeService.search(parseCsv(ingredients), parseDietary(dietary),
+                Set.copyOf(parseCsv(difficulty)), maxCookTime);
     }
 
     /** Distinct ingredient names across the catalog, for the ingredient picker. */

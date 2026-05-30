@@ -6,10 +6,10 @@ A web application that helps users discover recipes based on ingredients they al
 
 All recipes must be exclusively Korean cuisine — only Korean recipes are included in the app.
 
-> **Status:** All MVP features are implemented. The AI scraping agent is built but has not
-> yet been run to populate data (the catalog uses 15 hand-authored seed recipes).
-> Ingredient substitution suggestions are implemented; recipe export/import is not
-> started. See the [Scope Summary](#scope-summary) for the per-feature breakdown.
+> **Status:** All MVP features are implemented, plus difficulty/cook-time filters and
+> ingredient substitution suggestions. The catalog uses 15 hand-authored seed recipes.
+> The AI scraping agent was removed (deferred — not needed yet); recipe export/import is
+> not started. See the [Scope Summary](#scope-summary) for the per-feature breakdown.
 
 ---
 
@@ -44,6 +44,7 @@ All recipes must be exclusively Korean cuisine — only Korean recipes are inclu
   - [x] Vegan
   - [x] Vegetarian
   - [x] Also implemented: gluten-free, dairy-free, pescatarian
+- [x] **Difficulty & cook-time filters** _(added)_ — narrow results to Easy/Medium/Hard and a maximum cook time (≤ 20 / 30 / 45 / 60 min)
 
 ### Future
 
@@ -59,11 +60,12 @@ All recipes must be exclusively Korean cuisine — only Korean recipes are inclu
 - [x] **Backend business logic**
   - [x] Filter recipes by available ingredients
   - [x] Filter recipes by dietary restrictions
-- [x] **AI Agent pipeline** _(implemented; runs when `ANTHROPIC_API_KEY` is set — not yet run to populate data)_
-  - [x] Scrapes recipes from external sources
-  - [x] Parses and structures recipe data
-  - [x] Inputs results into the database
-- [x] **Backend** — business logic in Java with Spring Boot (REST API, service layer, repository layer). Filters recipes by available ingredients and dietary restrictions.
+  - [x] Filter recipes by difficulty and maximum cook time _(added)_
+- [ ] **AI Agent pipeline** _(removed — deferred; scraping not needed yet)_
+  - [ ] Scrapes recipes from external sources
+  - [ ] Parses and structures recipe data
+  - [ ] Inputs results into the database
+- [x] **Backend** — business logic in Java with Spring Boot (REST API, service layer, repository layer). Filters recipes by available ingredients, dietary restrictions, difficulty, and cook time.
 
 ### Future
 
@@ -83,7 +85,7 @@ All recipes must be exclusively Korean cuisine — only Korean recipes are inclu
 | Database     | H2 in-memory by default; PostgreSQL via the `postgres` profile (Docker)     |
 | Container    | Docker + Docker Compose (per-service Dockerfiles)                            |
 | CI / CD      | GitHub Actions — backend test, frontend build, Docker image builds          |
-| AI Agent     | Anthropic Claude API, called from the backend (`RecipeScraperAgent`)        |
+| AI Agent     | _Removed (deferred) — recipe scraping not needed yet_                        |
 
 ---
 
@@ -95,8 +97,9 @@ All recipes must be exclusively Korean cuisine — only Korean recipes are inclu
 | Recipe detail screen                            | MVP      | ✅ Done         |
 | Ingredient-based filtering                      | MVP      | ✅ Done         |
 | Dietary restriction filters (vegan, vegetarian) | MVP      | ✅ Done         |
+| Difficulty & cook-time filters                  | Added    | ✅ Done         |
 | Recipe database + storage                       | MVP      | ✅ Done         |
 | Backend filtering logic                         | MVP      | ✅ Done         |
-| AI Agent for recipe scraping                    | MVP      | ✅ Built (unrun) |
+| AI Agent for recipe scraping                    | MVP      | ⬜ Removed (deferred) |
 | Ingredient substitution                         | Future   | ✅ Done         |
 | Recipe export / import (text, JSON)             | Future   | ⬜ Not started  |

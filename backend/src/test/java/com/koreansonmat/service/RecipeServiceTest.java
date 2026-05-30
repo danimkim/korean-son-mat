@@ -88,6 +88,35 @@ class RecipeServiceTest {
     }
 
     @Test
+    void filterByDifficultyReturnsOnlyMatchingLevel() {
+        var easy = recipeService.search(List.of(), Set.of(), Set.of("easy"), null);
+
+        assertFalse(easy.isEmpty());
+        assertTrue(easy.stream().allMatch(r -> "Easy".equalsIgnoreCase(r.difficulty())));
+    }
+
+    @Test
+    void filterByMaxCookTimeExcludesLongerRecipes() {
+        var quick = recipeService.search(List.of(), Set.of(), Set.of(), 30);
+
+        assertFalse(quick.isEmpty());
+        assertTrue(quick.stream().allMatch(r -> r.cookTimeMinutes() != null && r.cookTimeMinutes() <= 30));
+        // Samgyetang (90 min) must be excluded.
+        assertTrue(quick.stream().noneMatch(r -> r.name().equals("Samgyetang")));
+    }
+
+    @Test
+    void difficultyAndCookTimeCombineWithDietary() {
+        var results = recipeService.search(
+                List.of(), Set.of(DietaryTag.VEGAN), Set.of("easy"), 30);
+
+        assertTrue(results.stream().allMatch(r ->
+                r.dietaryTags().contains(DietaryTag.VEGAN)
+                        && "Easy".equalsIgnoreCase(r.difficulty())
+                        && r.cookTimeMinutes() <= 30));
+    }
+
+    @Test
     void alreadyVeganRecipeHasNoVeganAdaptation() {
         var japchae = recipeService.findAll().stream()
                 .filter(r -> r.name().equals("Japchae"))

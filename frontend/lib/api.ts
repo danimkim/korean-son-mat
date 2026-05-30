@@ -3,20 +3,34 @@ import type { DietaryTag, RecipeDetail, RecipeSummary } from "./types";
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
 
-function buildQuery(ingredients: string[], dietary: DietaryTag[]): string {
+export interface RecipeFilters {
+  difficulty?: string[];
+  maxCookTime?: number | null;
+}
+
+function buildQuery(
+  ingredients: string[],
+  dietary: DietaryTag[],
+  filters: RecipeFilters
+): string {
   const params = new URLSearchParams();
   if (ingredients.length > 0) params.set("ingredients", ingredients.join(","));
   if (dietary.length > 0) params.set("dietary", dietary.join(","));
+  if (filters.difficulty && filters.difficulty.length > 0)
+    params.set("difficulty", filters.difficulty.join(","));
+  if (filters.maxCookTime != null)
+    params.set("maxCookTime", String(filters.maxCookTime));
   const qs = params.toString();
   return qs ? `?${qs}` : "";
 }
 
 export async function searchRecipes(
   ingredients: string[],
-  dietary: DietaryTag[]
+  dietary: DietaryTag[],
+  filters: RecipeFilters = {}
 ): Promise<RecipeSummary[]> {
   const res = await fetch(
-    `${API_BASE}/recipes/search${buildQuery(ingredients, dietary)}`
+    `${API_BASE}/recipes/search${buildQuery(ingredients, dietary, filters)}`
   );
   if (!res.ok) throw new Error(`Failed to load recipes (${res.status})`);
   return res.json();

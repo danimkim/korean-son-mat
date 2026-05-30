@@ -44,13 +44,31 @@ public class RecipeService {
      *         match at least one are returned, ranked by match count descending.
      */
     public List<RecipeSummary> search(List<String> ingredientNames, Set<DietaryTag> dietaryTags) {
+        return search(ingredientNames, dietaryTags, Set.of(), null);
+    }
+
+    /**
+     * Search recipes with the full set of filters.
+     *
+     * @param difficulties  allowed difficulty levels, e.g. "Easy"/"Medium"/"Hard"
+     *                      (case-insensitive); empty means any
+     * @param maxCookTime   maximum cook time in minutes, inclusive; null means any
+     */
+    public List<RecipeSummary> search(List<String> ingredientNames, Set<DietaryTag> dietaryTags,
+                                      Set<String> difficulties, Integer maxCookTime) {
         Set<String> normalizedPantry = ingredientNames.stream()
                 .map(Ingredient::normalize)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toSet());
+        Set<String> normalizedDifficulties = difficulties.stream()
+                .map(d -> d.trim().toLowerCase())
                 .filter(s -> !s.isBlank())
                 .collect(Collectors.toSet());
 
         return recipeRepository.findAll().stream()
                 .filter(recipe -> matchesDietary(recipe, dietaryTags))
+                .filter(recipe -> matchesDifficulty(recipe, normalizedDifficulties))
+                .filter(recipe -> matchesMaxCookTime(recipe, maxCookTime))
                 .map(recipe -> toSummary(recipe, normalizedPantry))
                 .filter(summary -> normalizedPantry.isEmpty() || summary.matchedIngredients() > 0)
                 .sorted(Comparator
@@ -95,6 +113,21 @@ public class RecipeService {
 
     private boolean matchesDietary(Recipe recipe, Set<DietaryTag> required) {
         return required.isEmpty() || recipe.getDietaryTags().containsAll(required);
+    }
+
+    private boolean matchesDifficulty(Recipe recipe, Set<String> normalizedDifficulties) {
+        if (normalizedDifficulties.isEmpty()) {
+            return true;
+        }
+        return recipe.getDifficulty() != null
+                && normalizedDifficulties.contains(recipe.getDifficulty().toLowerCase());
+    }
+
+    private boolean matchesMaxCookTime(Recipe recipe, Integer maxCookTime) {
+        if (maxCookTime == null) {
+            return true;
+        }
+        return recipe.getCookTimeMinutes() != null && recipe.getCookTimeMinutes() <= maxCookTime;
     }
 
     private RecipeSummary toSummary(Recipe recipe, Set<String> pantry) {

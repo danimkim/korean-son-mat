@@ -68,13 +68,19 @@ korean-son-mat/
   dietary tags, cook time, and servings.
 - **Ingredient filtering** — your pantry persists in `localStorage` across navigation.
 - **Dietary filters** — vegan, vegetarian, gluten-free, dairy-free, pescatarian.
+- **Difficulty & cook-time filters** — narrow results to Easy/Medium/Hard and a maximum
+  cook time (≤ 20 / 30 / 45 / 60 min).
+- **Ingredient substitutions** — the detail view suggests alternatives (e.g. beef →
+  plant-based beef / tofu) and groups them into per-diet "make it vegan/gluten-free" swaps.
 - **Design** — warm, editorial aesthetic inspired by the Claude design system
   ([getdesign.md/claude](https://getdesign.md/claude/design-md)).
 
 ### Backend
 
-- **Search API** — filter by available ingredients (ranked by match count, Supercook-style)
-  and/or dietary restrictions.
+- **Search API** — filter by available ingredients (ranked by match count, Supercook-style),
+  dietary restrictions, difficulty, and maximum cook time.
+- **Ingredient substitutions** — recipe detail is enriched with substitute ingredients and
+  per-diet adaptations (curated map in `IngredientSubstitutions`).
 - **Recipe catalog** — seeded with **15 curated Korean recipes** on first start
   (see [Recipe data & provenance](#recipe-data--provenance)).
 - **REST endpoints** — list, search, ingredient catalog, detail, create, delete.
@@ -148,7 +154,7 @@ Base path: `/api/recipes`
 | Method | Endpoint                     | Description                                  |
 | ------ | ---------------------------- | -------------------------------------------- |
 | GET    | `/api/recipes`               | List all recipes (accepts the same filters)  |
-| GET    | `/api/recipes/search`        | Search by ingredients and/or dietary tags    |
+| GET    | `/api/recipes/search`        | Search by ingredients, dietary, difficulty, cook time |
 | GET    | `/api/recipes/ingredients`   | Distinct ingredient names (for the picker)   |
 | GET    | `/api/recipes/{id}`          | Recipe detail (optionally `?ingredients=…`)  |
 | POST   | `/api/recipes`               | Create a recipe                              |
@@ -156,21 +162,29 @@ Base path: `/api/recipes`
 
 ### Filter query parameters
 
-Both parameters are optional, comma-separated lists. Dietary values are case-insensitive
-and accept hyphens (`gluten-free` → `GLUTEN_FREE`).
+All parameters are optional. `ingredients`, `dietary`, and `difficulty` are comma-separated,
+case-insensitive lists; `maxCookTime` is minutes.
+
+| Param         | Example              | Meaning                                        |
+| ------------- | -------------------- | ---------------------------------------------- |
+| `ingredients` | `garlic,soy-sauce`   | Rank results by how many you have              |
+| `dietary`     | `vegan,gluten-free`  | Result must satisfy ALL listed tags            |
+| `difficulty`  | `easy,medium`        | Result difficulty must be one of these         |
+| `maxCookTime` | `30`                 | Cook time ≤ this many minutes                  |
 
 ```bash
 # By ingredients — results ranked by how many you have
 GET /api/recipes/search?ingredients=garlic,soy-sauce,sesame-oil
 
-# By dietary restrictions (result must satisfy ALL listed tags)
-GET /api/recipes/search?dietary=vegan
+# Quick, easy, vegan dishes
+GET /api/recipes/search?dietary=vegan&difficulty=easy&maxCookTime=30
 
 # Combined
-GET /api/recipes/search?ingredients=spinach,garlic&dietary=vegan
+GET /api/recipes/search?ingredients=spinach,garlic&dietary=vegan&maxCookTime=45
 ```
 
 Valid dietary tags: `VEGAN`, `VEGETARIAN`, `GLUTEN_FREE`, `DAIRY_FREE`, `PESCATARIAN`.
+Valid difficulties: `Easy`, `Medium`, `Hard`.
 
 ---
 
@@ -273,14 +287,14 @@ docker compose down && docker compose up --build
 
 ## Roadmap
 
-Delivered (MVP): recipe list & detail screens, ingredient + dietary filtering, recipe
-database with seed data, backend filtering logic, Docker, and CI.
+Delivered (MVP): recipe list & detail screens, ingredient + dietary filtering,
+difficulty & cook-time filters, ingredient substitution suggestions, recipe database
+with seed data, backend filtering logic, Docker, and CI.
 
 Next:
 
 - [ ] Expand the seeded recipe catalog with more dishes
 - [ ] `PUT /api/recipes/{id}` for admin edits
-- [ ] Ingredient substitution suggestions (Future in `requirement.md`)
 - [ ] Recipe export / import as text or JSON (Future in `requirement.md`)
 - [ ] Frontend unit / component tests
 

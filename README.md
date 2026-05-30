@@ -23,7 +23,6 @@ make right now — ranked by how much you already have.
 | Build Tool | Maven (backend) · npm (frontend)                                  |
 | Container  | Docker + Docker Compose                                           |
 | CI / CD    | GitHub Actions                                                    |
-| AI Agent   | Anthropic Claude API (optional recipe scraping)                   |
 
 ### Project Structure
 
@@ -43,7 +42,6 @@ korean-son-mat/
 │   │   ├── repository/            # RecipeRepository (Spring Data JPA)
 │   │   ├── model/                 # Recipe, Ingredient, DietaryTag
 │   │   ├── dto/                   # API response records
-│   │   ├── agent/                 # RecipeScraperAgent (AI pipeline)
 │   │   ├── config/                # WebConfig (CORS), DataSeeder
 │   │   └── App.java               # Main application class
 │   ├── src/main/resources/
@@ -79,8 +77,6 @@ korean-son-mat/
   and/or dietary restrictions.
 - **Recipe catalog** — seeded with **15 curated Korean recipes** on first start
   (see [Recipe data & provenance](#recipe-data--provenance)).
-- **AI agent pipeline** — `RecipeScraperAgent` fetches a recipe page, has Claude structure
-  it into JSON, and persists it. **Disabled unless `ANTHROPIC_API_KEY` is set.**
 - **REST endpoints** — list, search, ingredient catalog, detail, create, delete.
 
 ---
@@ -109,9 +105,6 @@ This starts three services and **auto-seeds** the recipe catalog (no manual init
 - Frontend on `http://localhost:3000`
 
 Open **http://localhost:3000**.
-
-To enable the AI scraping agent, copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY`
-before running Compose.
 
 ---
 
@@ -187,7 +180,6 @@ Valid dietary tags: `VEGAN`, `VEGETARIAN`, `GLUTEN_FREE`, `DAIRY_FREE`, `PESCATA
 
 | Variable                     | Default                  | Notes                                   |
 | ---------------------------- | ------------------------ | --------------------------------------- |
-| `ANTHROPIC_API_KEY`          | _(unset)_                | Enables the recipe scraping agent       |
 | `SPRING_PROFILES_ACTIVE`     | _(default = H2)_         | Set to `postgres` for PostgreSQL        |
 | `SPRING_DATASOURCE_URL`      | `jdbc:postgresql://…`    | Used by the `postgres` profile          |
 | `SPRING_DATASOURCE_USERNAME` | `korean`                 | Used by the `postgres` profile          |
@@ -225,12 +217,10 @@ npm test        # placeholder — no unit tests configured yet
 
 The catalog is seeded by `backend/.../config/DataSeeder.java` with **15 hand-authored
 Korean recipes** (Bibimbap, Japchae, Kimchi Jjigae, Bulgogi, Tteokbokki, and more). These
-were written from general Korean-cuisine knowledge — **not scraped** and not verified
-against an authoritative source; dietary tags are best-effort.
+were written from general Korean-cuisine knowledge — not verified against an authoritative
+source; dietary tags are best-effort.
 
-For sourced, attributed recipes, the `RecipeScraperAgent` is the intended path: with
-`ANTHROPIC_API_KEY` set, it fetches a page, has Claude structure it into the recipe schema,
-validates it as Korean, and persists it. It is inert without a key.
+Add more recipes by editing `DataSeeder.java` or via `POST /api/recipes`.
 
 ---
 
@@ -284,11 +274,11 @@ docker compose down && docker compose up --build
 ## Roadmap
 
 Delivered (MVP): recipe list & detail screens, ingredient + dietary filtering, recipe
-database with seed data, backend filtering logic, AI scraping agent, Docker, and CI.
+database with seed data, backend filtering logic, Docker, and CI.
 
 Next:
 
-- [ ] Run the scraping agent to replace seed data with sourced, attributed recipes
+- [ ] Expand the seeded recipe catalog with more dishes
 - [ ] `PUT /api/recipes/{id}` for admin edits
 - [ ] Ingredient substitution suggestions (Future in `requirement.md`)
 - [ ] Recipe export / import as text or JSON (Future in `requirement.md`)

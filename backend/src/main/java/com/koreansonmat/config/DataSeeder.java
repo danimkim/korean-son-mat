@@ -16,9 +16,8 @@ import java.util.Set;
 
 /**
  * Seeds the database with a curated catalog of Korean recipes on first start
- * (when the table is empty). In production this catalog is grown by the
- * {@link com.koreansonmat.agent.RecipeScraperAgent}; the seed keeps the app
- * useful out of the box and offline.
+ * (when the table is empty). The seed keeps the app useful out of the box and
+ * offline.
  */
 @Component
 public class DataSeeder implements CommandLineRunner {

@@ -10,15 +10,15 @@ A web application that helps users discover recipes based on ingredients they al
 
 ### Tech Stack
 
-| Layer      | Technology                                        |
-| ---------- | ------------------------------------------------- |
-| Frontend   | Next.js + TypeScript                              |
-| Backend    | Java with Spring Boot (REST APIs)                 |
-| Database   | PostgreSQL                                        |
-| Build Tool | Maven                                             |
-| Container  | Docker                                            |
-| CI / CD    | GitHub Actions                                    |
-| AI Agent   | Anthropic Claude API (recipe scraping)            |
+| Layer      | Technology                             |
+| ---------- | -------------------------------------- |
+| Frontend   | Next.js + TypeScript                   |
+| Backend    | Java with Spring Boot (REST APIs)      |
+| Database   | PostgreSQL                             |
+| Build Tool | Maven                                  |
+| Container  | Docker                                 |
+| CI / CD    | GitHub Actions                         |
+| AI Agent   | Anthropic Claude API (recipe scraping) |
 
 ### Project Structure
 
@@ -54,6 +54,7 @@ korean-son-mat/
 ## Features (MVP)
 
 ### Frontend
+
 - **Recipe List Screen** — displays recipes filtered by selected ingredients
 - **Recipe Detail Screen** — full recipe view with ingredients, steps, and dietary tags
 - **Ingredient Filtering** — users input available ingredients
@@ -61,6 +62,7 @@ korean-son-mat/
 - **Design** — based on Claude design system ([getdesign.md/claude](https://getdesign.md/claude/design-md))
 
 ### Backend
+
 - **Recipe Filtering API** — filter by ingredients and dietary restrictions
 - **Recipe Database** — stores Korean recipes with metadata
 - **AI Agent Pipeline** — scrapes, parses, and structures recipe data from external sources
@@ -80,21 +82,25 @@ korean-son-mat/
 ### Quick Start with Docker
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/your-org/korean-son-mat.git
    cd korean-son-mat
    ```
 
 2. **Start services**
+
    ```bash
    docker-compose up -d
    ```
+
    This starts:
    - PostgreSQL database on `localhost:5432`
    - Backend Spring Boot API on `http://localhost:8080`
    - Frontend Next.js app on `http://localhost:3000`
 
 3. **Initialize database**
+
    ```bash
    # Run migrations and seed initial data
    docker exec korean-son-mat-backend java -jar app.jar --schema.init=true
@@ -112,12 +118,14 @@ korean-son-mat/
 ### Backend Setup
 
 1. **Install dependencies**
+
    ```bash
    cd backend
    mvn clean install
    ```
 
 2. **Configure database** — edit `src/main/resources/application.properties`
+
    ```properties
    spring.datasource.url=jdbc:postgresql://localhost:5432/korean_recipes
    spring.datasource.username=korean
@@ -134,12 +142,14 @@ korean-son-mat/
 ### Frontend Setup
 
 1. **Install dependencies**
+
    ```bash
    cd frontend
    npm install
    ```
 
 2. **Configure API endpoint** — create `.env.local`
+
    ```env
    NEXT_PUBLIC_API_URL=http://localhost:8080/api
    ```
@@ -156,14 +166,14 @@ korean-son-mat/
 
 ### Recipe Endpoints
 
-| Method | Endpoint                          | Description                           |
-| ------ | --------------------------------- | ------------------------------------- |
-| GET    | `/api/recipes`                    | List all recipes (with filters)       |
-| GET    | `/api/recipes/{id}`               | Get recipe details                    |
-| GET    | `/api/recipes/search`             | Search by ingredients & dietary tags  |
-| POST   | `/api/recipes`                    | Create recipe (admin)                 |
-| PUT    | `/api/recipes/{id}`               | Update recipe (admin)                 |
-| DELETE | `/api/recipes/{id}`               | Delete recipe (admin)                 |
+| Method | Endpoint              | Description                          |
+| ------ | --------------------- | ------------------------------------ |
+| GET    | `/api/recipes`        | List all recipes (with filters)      |
+| GET    | `/api/recipes/{id}`   | Get recipe details                   |
+| GET    | `/api/recipes/search` | Search by ingredients & dietary tags |
+| POST   | `/api/recipes`        | Create recipe (admin)                |
+| PUT    | `/api/recipes/{id}`   | Update recipe (admin)                |
+| DELETE | `/api/recipes/{id}`   | Delete recipe (admin)                |
 
 ### Filter Query Parameters
 
@@ -183,6 +193,7 @@ GET /api/recipes/search?ingredients=rice,beef&dietary=vegetarian
 ## Environment Variables
 
 ### Backend (`backend/src/main/resources/application.properties`)
+
 ```properties
 SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/korean_recipes
 SPRING_DATASOURCE_USERNAME=korean
@@ -191,6 +202,7 @@ ANTHROPIC_API_KEY=your-key-here
 ```
 
 ### Frontend (`.env.local`)
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8080/api
 ```
@@ -200,12 +212,14 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 ## Running Tests
 
 ### Backend Tests
+
 ```bash
 cd backend
 mvn test
 ```
 
 ### Frontend Tests
+
 ```bash
 cd frontend
 npm test
@@ -216,17 +230,20 @@ npm test
 ## Deployment
 
 ### Build Docker Image
+
 ```bash
 docker build -t korean-son-mat:latest .
 ```
 
 ### Deploy to Container Registry
+
 ```bash
 docker tag korean-son-mat:latest your-registry/korean-son-mat:latest
 docker push your-registry/korean-son-mat:latest
 ```
 
 ### CI/CD (GitHub Actions)
+
 - Workflows configured in `.github/workflows/`
 - Automatic build, test, and deploy on push to `main`
 
@@ -235,6 +252,7 @@ docker push your-registry/korean-son-mat:latest
 ## Troubleshooting
 
 ### Port Already in Use
+
 ```bash
 # Find process on port 3000
 lsof -i :3000
@@ -245,6 +263,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api PORT=3001 npm run dev
 ```
 
 ### Database Connection Error
+
 ```bash
 # Verify PostgreSQL is running
 docker-compose ps
@@ -254,6 +273,7 @@ docker-compose logs postgres
 ```
 
 ### Backend API Not Responding
+
 ```bash
 # Check logs
 docker-compose logs backend

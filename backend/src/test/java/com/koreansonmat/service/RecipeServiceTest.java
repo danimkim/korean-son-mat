@@ -63,4 +63,38 @@ class RecipeServiceTest {
         assertEquals(recipeService.findAll().size(),
                 recipeService.search(List.of(), Set.of()).size());
     }
+
+    @Test
+    void beefRecipeSuggestsVeganSubstituteAndAdaptation() {
+        var bulgogi = recipeService.findAll().stream()
+                .filter(r -> r.name().equals("Bulgogi"))
+                .findFirst().orElseThrow();
+        var detail = recipeService.findById(bulgogi.id(), List.of()).orElseThrow();
+
+        // The beef ingredient carries vegan/vegetarian substitutes.
+        var beef = detail.ingredients().stream()
+                .filter(i -> i.name().equals("Beef sirloin"))
+                .findFirst().orElseThrow();
+        assertFalse(beef.substitutes().isEmpty(), "beef should have substitutes");
+        assertTrue(beef.substitutes().stream()
+                .anyMatch(s -> s.dietaryTags().contains(DietaryTag.VEGAN)));
+
+        // A VEGAN adaptation should list a Beef sirloin → ... swap.
+        var veganAdaptation = detail.adaptations().stream()
+                .filter(a -> a.tag() == DietaryTag.VEGAN)
+                .findFirst().orElseThrow();
+        assertTrue(veganAdaptation.swaps().stream()
+                .anyMatch(s -> s.from().equals("Beef sirloin")));
+    }
+
+    @Test
+    void alreadyVeganRecipeHasNoVeganAdaptation() {
+        var japchae = recipeService.findAll().stream()
+                .filter(r -> r.name().equals("Japchae"))
+                .findFirst().orElseThrow();
+        var detail = recipeService.findById(japchae.id(), List.of()).orElseThrow();
+
+        assertTrue(detail.adaptations().stream().noneMatch(a -> a.tag() == DietaryTag.VEGAN),
+                "a vegan recipe should not suggest a vegan adaptation");
+    }
 }

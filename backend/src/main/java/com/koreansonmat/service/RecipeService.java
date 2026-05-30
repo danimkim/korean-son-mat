@@ -1,8 +1,12 @@
 package com.koreansonmat.service;
 
+import com.koreansonmat.config.IngredientSubstitutions;
+import com.koreansonmat.dto.RecipeDtos.DietAdaptation;
 import com.koreansonmat.dto.RecipeDtos.IngredientView;
 import com.koreansonmat.dto.RecipeDtos.RecipeDetail;
 import com.koreansonmat.dto.RecipeDtos.RecipeSummary;
+import com.koreansonmat.dto.RecipeDtos.Substitute;
+import com.koreansonmat.dto.RecipeDtos.Swap;
 import com.koreansonmat.model.DietaryTag;
 import com.koreansonmat.model.Ingredient;
 import com.koreansonmat.model.Recipe;
@@ -24,9 +28,11 @@ import java.util.stream.Collectors;
 public class RecipeService {
 
     private final RecipeRepository recipeRepository;
+    private final IngredientSubstitutions substitutions;
 
-    public RecipeService(RecipeRepository recipeRepository) {
+    public RecipeService(RecipeRepository recipeRepository, IngredientSubstitutions substitutions) {
         this.recipeRepository = recipeRepository;
+        this.substitutions = substitutions;
     }
 
     /**
@@ -122,7 +128,8 @@ public class RecipeService {
                 .map(i -> new IngredientView(
                         i.getName(),
                         i.getQuantity(),
-                        pantry.contains(i.getNormalizedName())))
+                        pantry.contains(i.getNormalizedName()),
+                        substitutions.forIngredient(i.getName())))
                 .collect(Collectors.toList());
         int matched = (int) ingredientViews.stream().filter(IngredientView::available).count();
         return new RecipeDetail(
@@ -137,7 +144,34 @@ public class RecipeService {
                 recipe.getDietaryTags(),
                 ingredientViews,
                 recipe.getSteps(),
-                matched
+                matched,
+                adaptations(recipe)
         );
+    }
+
+    /**
+     * For each dietary restriction the recipe does NOT already satisfy, collect the
+     * ingredient swaps that move it toward that diet — e.g. for a beef dish, a VEGAN
+     * adaptation suggesting "Beef sirloin → Plant-based beef strips". Only diets with
+     * at least one available swap are returned.
+     */
+    private List<DietAdaptation> adaptations(Recipe recipe) {
+        List<DietAdaptation> result = new ArrayList<>();
+        for (DietaryTag tag : DietaryTag.values()) {
+            if (recipe.getDietaryTags().contains(tag)) {
+                continue; // already satisfies this diet — nothing to adapt
+            }
+            List<Swap> swaps = new ArrayList<>();
+            for (Ingredient ingredient : recipe.getIngredients()) {
+                substitutions.forIngredient(ingredient.getName()).stream()
+                        .filter(s -> s.dietaryTags().contains(tag))
+                        .findFirst()
+                        .ifPresent(s -> swaps.add(new Swap(ingredient.getName(), s.name())));
+            }
+            if (!swaps.isEmpty()) {
+                result.add(new DietAdaptation(tag, swaps));
+            }
+        }
+        return result;
     }
 }

@@ -45,6 +45,16 @@ export default function Home() {
     }
   }, [pantry]);
 
+  // Persist the dietary selection too, so the detail page can highlight the
+  // matching "make it vegan/…" substitution.
+  useEffect(() => {
+    try {
+      localStorage.setItem("son-mat:dietary", JSON.stringify(dietary));
+    } catch {
+      /* ignore */
+    }
+  }, [dietary]);
+
   useEffect(() => {
     getAllIngredients()
       .then(setSuggestions)

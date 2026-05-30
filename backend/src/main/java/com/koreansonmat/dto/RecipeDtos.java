@@ -14,8 +14,31 @@ public final class RecipeDtos {
     private RecipeDtos() {
     }
 
-    /** A single ingredient line, annotated with whether the user has it on hand. */
-    public record IngredientView(String name, String quantity, boolean available) {
+    /** An alternative ingredient and the dietary restrictions it helps satisfy. */
+    public record Substitute(String name, Set<DietaryTag> dietaryTags) {
+    }
+
+    /**
+     * A single ingredient line, annotated with whether the user has it on hand
+     * and any substitute ingredients (e.g. beef → plant-based beef for vegan).
+     */
+    public record IngredientView(
+            String name,
+            String quantity,
+            boolean available,
+            List<Substitute> substitutes
+    ) {
+    }
+
+    /** One ingredient swap, e.g. "Beef sirloin" → "Plant-based beef strips". */
+    public record Swap(String from, String to) {
+    }
+
+    /**
+     * Suggested swaps that move a recipe toward a dietary restriction it does not
+     * already satisfy, e.g. tag=VEGAN with swaps [Beef sirloin → Plant-based beef].
+     */
+    public record DietAdaptation(DietaryTag tag, List<Swap> swaps) {
     }
 
     /** Lightweight shape used by the recipe list / cards. */
@@ -48,7 +71,8 @@ public final class RecipeDtos {
             Set<DietaryTag> dietaryTags,
             List<IngredientView> ingredients,
             List<String> steps,
-            int matchedIngredients
+            int matchedIngredients,
+            List<DietAdaptation> adaptations
     ) {
     }
 }

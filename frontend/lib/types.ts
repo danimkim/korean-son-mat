@@ -20,10 +20,26 @@ export interface RecipeSummary {
   missingIngredientNames: string[];
 }
 
+export interface Substitute {
+  name: string;
+  dietaryTags: DietaryTag[];
+}
+
 export interface IngredientView {
   name: string;
   quantity: string;
   available: boolean;
+  substitutes: Substitute[];
+}
+
+export interface Swap {
+  from: string;
+  to: string;
+}
+
+export interface DietAdaptation {
+  tag: DietaryTag;
+  swaps: Swap[];
 }
 
 export interface RecipeDetail {
@@ -39,6 +55,7 @@ export interface RecipeDetail {
   ingredients: IngredientView[];
   steps: string[];
   matchedIngredients: number;
+  adaptations: DietAdaptation[];
 }
 
 export const DIETARY_LABELS: Record<DietaryTag, string> = {

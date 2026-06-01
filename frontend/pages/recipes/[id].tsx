@@ -188,6 +188,14 @@ export default function RecipeDetailPage() {
                     ))}
                   </div>
                 )}
+                {ing.ukSubstitutes.length > 0 && (
+                  <div className="ingredient-uk-subs">
+                    <span className="ingredient-uk-subs__label">Hard to find in the UK?</span>
+                    {ing.ukSubstitutes.map((s) => (
+                      <span key={s.name} className="uk-sub-pill">{s.name}</span>
+                    ))}
+                  </div>
+                )}
               </li>
             ))}
           </ul>

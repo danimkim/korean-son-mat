@@ -1,6 +1,7 @@
 package com.koreansonmat.service;
 
 import com.koreansonmat.config.IngredientSubstitutions;
+import com.koreansonmat.config.UKIngredientSubstitutions;
 import com.koreansonmat.dto.RecipeDtos.DietAdaptation;
 import com.koreansonmat.dto.RecipeDtos.IngredientView;
 import com.koreansonmat.dto.RecipeDtos.RecipeDetail;
@@ -29,10 +30,14 @@ public class RecipeService {
 
     private final RecipeRepository recipeRepository;
     private final IngredientSubstitutions substitutions;
+    private final UKIngredientSubstitutions ukSubstitutions;
 
-    public RecipeService(RecipeRepository recipeRepository, IngredientSubstitutions substitutions) {
+    public RecipeService(RecipeRepository recipeRepository,
+                         IngredientSubstitutions substitutions,
+                         UKIngredientSubstitutions ukSubstitutions) {
         this.recipeRepository = recipeRepository;
         this.substitutions = substitutions;
+        this.ukSubstitutions = ukSubstitutions;
     }
 
     /**
@@ -162,7 +167,8 @@ public class RecipeService {
                         i.getName(),
                         i.getQuantity(),
                         pantry.contains(i.getNormalizedName()),
-                        substitutions.forIngredient(i.getName())))
+                        substitutions.forIngredient(i.getName()),
+                        ukSubstitutions.forIngredient(i.getName())))
                 .collect(Collectors.toList());
         int matched = (int) ingredientViews.stream().filter(IngredientView::available).count();
         return new RecipeDetail(

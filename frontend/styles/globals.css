@@ -568,6 +568,33 @@ h3 {
   opacity: 0.75;
 }
 
+/* --- UK ingredient substitutes --- */
+.ingredient-uk-subs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 2px 27px;
+}
+
+.ingredient-uk-subs__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+.uk-sub-pill {
+  display: inline-flex;
+  padding: 3px 9px;
+  border-radius: var(--radius-sm);
+  background: var(--cream-deep);
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+}
+
 /* --- "Make it your way" adaptation panel --- */
 .adapt-panel {
   background: var(--card);

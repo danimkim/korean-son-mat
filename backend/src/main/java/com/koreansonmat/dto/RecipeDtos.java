@@ -18,15 +18,20 @@ public final class RecipeDtos {
     public record Substitute(String name, Set<DietaryTag> dietaryTags) {
     }
 
+    /** A UK-available alternative for a hard-to-find Korean pantry ingredient. */
+    public record UKSubstitute(String name) {
+    }
+
     /**
-     * A single ingredient line, annotated with whether the user has it on hand
-     * and any substitute ingredients (e.g. beef → plant-based beef for vegan).
+     * A single ingredient line, annotated with whether the user has it on hand,
+     * dietary substitutes, and UK-availability substitutes shown separately.
      */
     public record IngredientView(
             String name,
             String quantity,
             boolean available,
-            List<Substitute> substitutes
+            List<Substitute> substitutes,
+            List<UKSubstitute> ukSubstitutes
     ) {
     }
 

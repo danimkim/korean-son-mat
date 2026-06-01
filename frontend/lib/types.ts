@@ -25,11 +25,16 @@ export interface Substitute {
   dietaryTags: DietaryTag[];
 }
 
+export interface UKSubstitute {
+  name: string;
+}
+
 export interface IngredientView {
   name: string;
   quantity: string;
   available: boolean;
   substitutes: Substitute[];
+  ukSubstitutes: UKSubstitute[];
 }
 
 export interface Swap {
